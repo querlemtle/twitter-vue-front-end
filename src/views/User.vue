@@ -5,8 +5,7 @@
         <SideBar />
       </div>
       <div class="col-7">
-        <UserProfileCard 
-        @show-edit-modal="toggleEditModal(true)"/>
+        <UserProfileCard @show-edit-modal="toggleEditModal(true)" />
         <div>
           <ul class="nav-tab d-flex">
             <li v-for="tab in tabs" :key="tab.id" class="nav-item">
@@ -16,7 +15,17 @@
             </li>
           </ul>
         </div>
-        <router-view :current-user="currentUser"> </router-view>
+
+        <!-- todo: 這邊使用 router-link 畫面會 error -->
+        <!-- <router-link
+          v-for="tweet in tweets"
+          :key="tweet.id"
+          :initial-tweets="tweets"
+        ></router-link>
+       -->
+
+       <router-view/>
+
       </div>
       <div class="col">
         <PopularUsers />
@@ -34,40 +43,8 @@ import SideBar from "../components/Sidebar";
 import UserProfileCard from "./../components/UserProfileCard";
 import PopularUsers from "../components/PopularUsers";
 import UserEditModal from "../components/UserEditModal";
-
-const dummyData = {
-  dummyUser: {
-    id: 6,
-    account: "user5",
-    name: "user5",
-    avatar: "https://i.imgur.com/mUMGidO.jpeg",
-    introduction: null,
-    banner: "https://i.imgur.com/zFLriLp.jpeg",
-    role: "user",
-    createdAt: "2022-07-31T11:44:03.000Z",
-    updatedAt: "2022-07-31T11:57:31.000Z",
-    tweetCounts: 10,
-    replyCounts: 40,
-    likeCounts: 0,
-    followerCounts: 0,
-    followingCounts: 0,
-    currentUser: {
-      id: 6,
-      account: "user5",
-      name: "user5",
-      email: "user5@example.com",
-      password: "$2a$10$XJnSp12vCKq1sJI5kf0Z7.66l35Dkke//bzkUC3kX3amI/pwrSntm",
-      avatar: "https://i.imgur.com/mUMGidO.jpeg",
-      introduction: null,
-      banner: "https://i.imgur.com/zFLriLp.jpeg",
-      role: "user",
-      createdAt: "2022-07-31T11:44:03.000Z",
-      updatedAt: "2022-07-31T11:57:31.000Z",
-      Followers: [],
-      Followings: [],
-    },
-  },
-};
+import userAPI from "./../apis/user";
+import { Toast } from "../utils/helpers";
 
 export default {
   name: "User",
@@ -75,11 +52,18 @@ export default {
     SideBar,
     UserProfileCard,
     PopularUsers,
-    UserEditModal
+    UserEditModal,
   },
   created() {
-    const { userId } = this.$route.params;
-    this.fetchUser(userId);
+    // 取得動態路由位置
+    const { id: userId } = this.$route.params;
+    this.fetchUserTweets(userId);
+  },
+  // 追蹤路由變化
+  beforeRouteUpdate(to, from, next) {
+    const { id } = to.params;
+    this.fetchUserTweets(id);
+    next();
   },
   data() {
     return {
@@ -89,7 +73,7 @@ export default {
           path: "tweets",
         },
         {
-          title: "推文與回覆",
+          title: "回覆",
           path: "replies",
         },
         {
@@ -98,15 +82,34 @@ export default {
         },
       ],
       currentUser: {},
+      tweets: [],
       showEditModal: false,
     };
   },
   methods: {
-    fetchUser() {
-      this.currentUser = dummyData.dummyUser.currentUser;
-    },
     toggleEditModal(bool) {
       this.showEditModal = bool;
+    },
+    // 加入 tweets
+    async fetchUserTweets(userId) {
+      try {
+        const { data } = await userAPI.getUserTweets({ userId });
+        console.log("data", data);
+        // // 錯誤處理 (加入這個反而沒有內容)
+        // if (data.status !== 200) {
+        //   throw new Error(data.message);
+        // }
+
+        this.userTweets = data;
+
+        this.isLoading = false;
+      } catch (error) {
+        this.isLoading = false;
+        Toast.fire({
+          icon: "error",
+          title: "無法取得 tweets",
+        });
+      }
     },
   },
 };
@@ -121,7 +124,7 @@ export default {
 }
 .nav-link.active {
   width: 80px;
-  box-shadow: 0px 2px ;
+  box-shadow: 0px 2px;
   justify-content: center;
   padding: 10px 15px;
   /* todo: 線刪不掉 and 圓弧效果radius:100px  */

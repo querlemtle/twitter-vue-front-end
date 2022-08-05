@@ -1,21 +1,39 @@
 <template>
   <div class="card-container">
     <div v-for="reply in replyTweets" :key="reply.id" class="user-reply-tweets">
-      <div class="user-image-sm"></div>
+      <!-- <div class="user-image-sm"></div> -->
+      <!-- <router-link :to="{ name: 'user-profile' ,params:{userId: userId}}">
+      <img :src="userAvatar" class="avatar" alt="" />
+      </router-link> -->
+      <!--  -->
+      <router-link :to="{ name: 'user', params: { id: currentUser.id } }">
+        <img :src="currentUser.avatar | emptyImage" class="avatar" alt="" />
+      </router-link>
+
       <div class="card-info">
         <div class="card-header">
           <div class="user-naming">
             <p class="user-name">{{ currentUser.name }}</p>
             <p class="user-handle">
               @{{ currentUser.account }}<span>・</span>
-              <span class="time-stamp">{{ currentUser.createdAt | fromNow}}</span>
+              <span class="time-stamp">{{
+                currentUser.createdAt | fromNow
+              }}</span>
             </p>
           </div>
         </div>
         <div class="card-header">
           <div class="user-naming">
             <p class="user-handle">
-              回覆 <span> @{{ reply.replyUserAccount }}</span>
+              <span> 回覆 </span>
+              <!-- todo: 這邊連結過去的畫面和預期不同 -->
+              <router-link
+                :to="{ name: 'user', params: { id: reply.UserId } }"
+              >
+                <span class="original-tweet ms-1"
+                  >@{{ reply.replyUserAccount }}</span
+                >
+              </router-link>
             </p>
           </div>
         </div>
@@ -30,57 +48,44 @@
 </template>
 
 <script>
-import { fromNowFilter } from "./../utils/mixins";
+import { emptyImageFilter } from "./../utils/mixins";
 
-const dummyData = {
-  dummyReplyTweets: [
-    {
-      id: 3,
-      userId: 3,
-      tweetId: 1,
-      comment:
-        "Voluptatem nihil nihil qui ratione ad et qui modi quam. Sunt eius enim. Commodi ipsa praesentium sequi eum voluptatem.",
-      createdAt: "2022-08-02T02:49:05.000Z",
-      updatedAt: "2022-08-02T02:49:05.000Z",
-      UserId: 3,
-      TweetId: 1,
-      replyUserAccount: "user1",
-    },
-    {
-      id: 5,
-      userId: 3,
-      tweetId: 2,
-      comment:
-        "Hic repellat omnis voluptas ut magnam non eum rerum. Deserunt omnis et ut tempore necessitatibus facilis rem. Beatae eveniet quidem libero e",
-      createdAt: "2022-08-02T02:49:05.000Z",
-      updatedAt: "2022-08-02T02:49:05.000Z",
-      UserId: 3,
-      TweetId: 2,
-      replyUserAccount: "user1",
-    },
-  ],
-};
+import { fromNowFilter } from "./../utils/mixins";
+import userAPI from "./../apis/user";
+import { Toast } from "../utils/helpers";
+// 載入 Vuex
+import { mapState } from "vuex";
+
 export default {
   name: "UserReplyTweets",
-  mixins: [fromNowFilter],
-
-  props: {
-    currentUser: {
-      type: Object,
-      required: true,
-    },
-  },
+  mixins: [fromNowFilter, emptyImageFilter],
   data() {
     return {
       replyTweets: [],
     };
   },
+  // 從 Vuex 取得 currentUser 的資料
+  computed: {
+    ...mapState(["currentUser"]),
+  },
   created() {
-    this.fetchReplyTweets()
+    // 取得動態路由位置
+    const { id: userId } = this.$route.params;
+    this.fetchReplyTweets(userId);
   },
   methods: {
-    fetchReplyTweets() {
-      this.replyTweets = dummyData.dummyReplyTweets;
+    async fetchReplyTweets(userId) {
+      try {
+        const { data } = await userAPI.getUserReplyTweets({ userId });
+        console.log("data", data);
+
+        this.replyTweets = data;
+      } catch (error) {
+        Toast.fire({
+          icon: "error",
+          title: "無法取得 replyTweets",
+        });
+      }
     },
   },
 };
@@ -95,6 +100,16 @@ export default {
   background-repeat: no-repeat;
 }
 .user-reply:hover {
+  color: var(--main-color);
+}
+.avatar {
+  width: 50px;
+  height: 50px;
+  margin-right: 8px;
+}
+.original-tweet {
+  font-size: 15px;
+  font-weight: 500;
   color: var(--main-color);
 }
 </style>

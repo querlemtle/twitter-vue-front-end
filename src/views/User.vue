@@ -141,7 +141,7 @@ export default {
           title: "無法取得使用者資料，請稍後再試",
         });
       }
-    },
+    }
   },
 };
 </script>

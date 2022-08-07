@@ -58,13 +58,11 @@ export default {
   created() {
     // 取得動態路由位置
     const { id: userId } = this.$route.params;
-    this.fetchUserTweets(userId);
     this.fetchUserProfile(userId);
   },
   // 追蹤路由變化
   beforeRouteUpdate(to, from, next) {
     const { id } = to.params;
-    this.fetchUserTweets(id);
     this.fetchUserProfile(id);
     next();
   },
@@ -110,8 +108,6 @@ export default {
     },
     
     handleChangeCount(value) {
-      console.log('step2')
-      console.log(value)
       
       if (value === false) {
         this.user.followingCounts = this.user.followingCounts + 1
@@ -121,27 +117,6 @@ export default {
       }
     },
   
-    // 加入 tweets
-    async fetchUserTweets(userId) {
-      try {
-        const { data } = await userAPI.getUserTweets({ userId });
-        console.log("data", data);
-        // // 錯誤處理 (加入這個反而沒有內容)
-        // if (data.status !== 200) {
-        //   throw new Error(data.message);
-        // }
-
-        this.userTweets = data;
-
-        this.isLoading = false;
-      } catch (error) {
-        this.isLoading = false;
-        Toast.fire({
-          icon: "error",
-          title: "無法取得 tweets",
-        });
-      }
-    },
     async fetchUserProfile(userId) {
       try {
         const response = await userAPI.getUser({ userId });

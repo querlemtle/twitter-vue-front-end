@@ -121,15 +121,17 @@ export default {
       try {
         const response  = await userAPI.getUserTweets({ userId });
         
-        if (response.status !== 200) {
-          throw new Error(response.message);
-        }
+        // if (response.status !== 200) {
+        //   throw new Error(response.message);
+        // }
         const tweetsData = response.data
         
-        this.tweets = tweetsData
+        console.log('tweetsData', tweetsData)
+        // this.tweets = tweetsData
 
         this.isLoading = false;
       } catch (error) {
+        console.log(error.response.data.message)
         this.isLoading = false;
         Toast.fire({
           icon: "error",
@@ -190,7 +192,6 @@ export default {
       this.show = true;
       this.tweetActive = tweet;
     },
-    // 須要 call API ?
   
     
     // todo: 未完成

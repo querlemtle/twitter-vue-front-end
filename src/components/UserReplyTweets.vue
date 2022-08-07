@@ -76,11 +76,15 @@ export default {
   methods: {
     async fetchReplyTweets(userId) {
       try {
+        if(data.status === "error"){
+          throw new Error(data.message)
+        }
         const { data } = await userAPI.getUserReplyTweets({ userId });
         console.log("data", data);
 
         this.replyTweets = data;
       } catch (error) {
+        console.log(error.response.data.message)
         Toast.fire({
           icon: "error",
           title: "無法取得 replyTweets",

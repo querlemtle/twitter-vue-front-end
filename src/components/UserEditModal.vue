@@ -135,6 +135,40 @@ export default {
   props: {
     // 從 User.vue 傳來
     show: Boolean,
+  }, 
+  //  data() {
+  //   return {
+  //     user: {
+  //       id: this.currentUser.id,
+  //       name: this.currentUser.name,
+  //       account: this.currentUser.account,
+  //       avatar: this.currentUser.avatar,
+  //       banner: this.currentUser.banner,
+  //       introduction: this.currentUser.introduction,
+  //     },
+  //   };
+  // },
+  computed: {
+    // 從 Vuex 取得 currentUser 的資料
+    ...mapState(["currentUser"]),
+    nameLength: {
+      get: function () {
+        const length = this.user.name.length;
+        return length;
+      },
+      set: function (newValue) {
+        this.nameLength = newValue;
+      },
+    },
+    introLength: {
+      get: function () {
+        const length = this.user.introduction.length;
+        return length;
+      },
+      set: function (newValue) {
+        this.introLength = newValue;
+      },
+    },
   },
   data() {
     return {
@@ -147,9 +181,6 @@ export default {
       isIntroTooLong: false,
       isProcessing: false,
     };
-  },
-  computed: {
-    ...mapState(["currentUser"]),
   },
   methods: {
     async handleEditModalSubmit() {
@@ -383,5 +414,4 @@ export default {
 .banner-preview {
   z-index: 66;
 }
-
 </style>

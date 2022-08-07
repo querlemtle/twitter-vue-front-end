@@ -222,7 +222,7 @@ export default {
 }
 
 /* cited tweet card */
-.modal-tweet {
+.card-tweet {
   display: flex;
   position: relative;
 }

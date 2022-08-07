@@ -6,20 +6,26 @@
       :key="tweet.id"
       class="user-like-tweets"
     >
-    <!-- todo: router 有少 -->
-     <!-- <router-link
-        :to="{ name: 'user', params: { userId: tweet.Tweet.UserId } }"
+    <!-- 有圖片時 -->
+     <router-link
+        v-if="tweet.Tweet.User.avatar"
+        :to="{ name: 'user', params: { id: tweet.Tweet.User.id } }"
       >
-        <img :src="tweet.Tweet.User.avatar" class="avatar" alt="" />
-      </router-link> -->
-
-      <div class="user-image-sm"></div>
+        <img :src="tweet.Tweet.User.avatar" class="user-avatar" alt="" />
+      </router-link>
+      <!-- 沒有圖片時 -->
+      <router-link
+        v-else
+        :to="{ name: 'user', params: { id: tweet.Tweet.User.id } }"
+      >
+        <div class="user-image-sm"></div>
+      </router-link>
       <div class="card-info">
         <div class="card-header">
           <div class="user-naming">
-            <p class="user-name">XXX</p>
+            <p class="user-name">{{tweet.Tweet.User.name}}</p>
             <p class="user-handle">
-              @{{tweet.Tweet.replyUserAccount}}<span>・</span>
+              @{{tweet.Tweet.User.account}}<span>・</span>
               <span class="time-stamp">{{ tweet.createdAt | fromNow }}</span>
             </p>
           </div>
@@ -36,6 +42,32 @@
               tweet.Tweet.replyCounts
             }}</span>
           </div>
+          <!-- From UserTweets -->
+          <!-- <div class="icon-section">
+             <div class="footer-icon like-icon">
+              <div 
+              v-if="!tweet.isLiked"
+              @click.stop.prevent="deleteLike(tweet.id)"
+              class="section-like d-flex">
+                <img
+                class="counter like-icon"
+                src="../assets/pictures/like.png"
+                alt=""
+              />{{ tweet.likeCounts }}
+              </div>
+              <div 
+              v-if="tweet.isLiked"
+              @click.stop.prevent="addLike(tweet.id)"
+              class="section-like d-flex">
+                <img
+                class="counter like-icon-add"
+                src="../assets/pictures/like-icon.svg"
+                alt=""
+              />{{ tweet.likeCounts }}
+              </div>
+            </div>
+          </div> -->
+          <!-- Here -->
           <div class="icon-section">
             <div
               v-if="!tweet.isLike"
@@ -111,6 +143,16 @@ export default {
 </script>
 
 <style scoped>
+/* 有圖片時 */
+.user-avatar {
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  margin-right: 0.5rem;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+/* 沒有圖片時 */
 .user-image-sm {
   padding: 1rem;
   margin-right: 0.5rem;

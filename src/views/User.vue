@@ -5,7 +5,9 @@
         <SideBar />
       </div>
       <div class="col-7">
-        <UserProfileCard @show-edit-modal="toggleEditModal(true)" />
+        <UserProfileCard 
+        :user="user"
+        @show-edit-modal="toggleEditModal(true)" />
         <div>
           <ul class="nav-tab d-flex">
             <li v-for="tab in tabs" :key="tab.id" class="nav-item">
@@ -24,11 +26,10 @@
         ></router-link>
        -->
 
-       <router-view/>
-
+        <router-view />
       </div>
       <div class="col">
-        <PopularUsers />
+        <PopularUsers @change-count="handleChangeCount"/>
       </div>
     </div>
     <UserEditModal :show="showEditModal" @close="toggleEditModal(false)" />
@@ -58,11 +59,13 @@ export default {
     // 取得動態路由位置
     const { id: userId } = this.$route.params;
     this.fetchUserTweets(userId);
+    this.fetchUserProfile(userId);
   },
   // 追蹤路由變化
   beforeRouteUpdate(to, from, next) {
     const { id } = to.params;
     this.fetchUserTweets(id);
+    this.fetchUserProfile(id);
     next();
   },
   data() {
@@ -84,12 +87,40 @@ export default {
       currentUser: {},
       tweets: [],
       showEditModal: false,
+
+      user: {
+        id: -1,
+        account: "",
+        name: "",
+        email: "",
+        introduction: "",
+        avatar: "",
+        banner: "",
+        tweetCounts: 0,
+        followingCounts: 0,
+        followerCounts: 0,
+        likeCount: 0,
+        isFollowed: false,
+      },
     };
   },
   methods: {
     toggleEditModal(bool) {
       this.showEditModal = bool;
     },
+    
+    handleChangeCount(value) {
+      console.log('step2')
+      console.log(value)
+      
+      if (value === false) {
+        this.user.followingCounts = this.user.followingCounts + 1
+      }
+      if (value === true) {
+        this.user.followingCounts = this.user.followingCounts - 1
+      }
+    },
+  
     // 加入 tweets
     async fetchUserTweets(userId) {
       try {
@@ -108,6 +139,31 @@ export default {
         Toast.fire({
           icon: "error",
           title: "無法取得 tweets",
+        });
+      }
+    },
+    async fetchUserProfile(userId) {
+      try {
+        const response = await userAPI.getUser({ userId });
+
+        if (response.status !== 200) {
+          throw new Error(response.message);
+        }
+
+        this.user = response.data;
+
+        console.log("UserProfile response.data", response.data);
+
+        this.user = {
+          ...this.user,
+          introduction: this.user.introduction ? this.user.introduction : "",
+        };
+        this.isLoading = false;
+      } catch (error) {
+        this.isLoading = false;
+        Toast.fire({
+          icon: "error",
+          title: "無法取得使用者資料，請稍後再試",
         });
       }
     },

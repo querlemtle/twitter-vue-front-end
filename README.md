@@ -59,6 +59,11 @@ Development Dependencies
 - sass-loader@10.1.1
 - vue-template-compiler@2.6.11
 
+### Clone the project
+```
+git clone https://github.com/querlemtle/twitter-vue-front-end.git
+```
+
 ### Project setup
 ```
 npm install

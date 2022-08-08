@@ -23,9 +23,11 @@
         <UserFollowsNav 
           :user="user"/>
         <UserFollowsCard
-            v-for="Follower in allFollowers"
-            :key="Follower.id"
-            :initial-follower="Follower" />
+            v-for="follower in allFollowers"
+            :key="follower.id"
+            :initial-follower="follower"
+            @update-followers.prevent="updateFollowers"
+            />
       </div>
       <div class="col">
         <PopularUsers />
@@ -72,18 +74,19 @@ export default {
         this.user = userId;
         this.allFollowers = response.data;
 
-        console.log("UserProfile response.data", response.data);
-
         this.isLoading = false;
       } catch (error) {
         this.isLoading = false;
         Toast.fire({
           icon: "error",
-          title: "無法取得使用者資料，請稍後再試",
+          title: "無法取得跟隨者資料，請稍後再試",
         });
       }
+    },
+    updateFollowers() {
+      const { id } = this.$route.params;
+      this.fetchUserFollowers(id);
     }
-    
   },
 };
 </script>

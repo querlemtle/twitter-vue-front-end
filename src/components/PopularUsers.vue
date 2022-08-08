@@ -70,8 +70,8 @@ export default {
         // 已經跟隨該 user
         if (isUserFollowed) {
           // DETELE /api/followships/:followingId 取消跟隨
-          const response = await followsAPI.unFollowUser(userId);
-
+          const response = await followsAPI.unFollowUser({ userId });
+          
           if (response.data.status === "success") {
             Toast.fire({
               icon: "success",
@@ -86,7 +86,7 @@ export default {
           }
         } else {
           // POST /api/followships 進行跟隨
-          const response = await followsAPI.followUser(userId);
+          const response = await followsAPI.followUser({ userId });
 
           if (response.data.status === "success") {
             Toast.fire({

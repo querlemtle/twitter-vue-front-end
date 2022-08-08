@@ -23,9 +23,11 @@
         <UserFollowsNav 
         :user="user"/>
         <UserFollowsCard 
-          v-for="Following in allFollowings"
-          :key="Following.id"
-          :initial-following="Following" />
+          v-for="following in allFollowings"
+          :key="following.id"
+          :initial-following="following"
+          @update-followings="updateFollowings"
+          />
       </div>
       <div class="col">
         <PopularUsers />
@@ -46,7 +48,7 @@ export default {
   name: "UserFollowings",
   data() {
     return {
-      user:[],
+      user: [],
       allFollowings: [],
     };
   },
@@ -60,40 +62,37 @@ export default {
     // 取得動態路由位置
     const { id: userId } = this.$route.params;
     this.fetchUserFollowings(userId);
-
-    switch (this.$route.name) {
-      case "user-followers":
-        // 顯示[追隨者]清單
-        break;
-    
-      case "user-followings":
-        // 顯示[正在追隨]清單
-        break;
-    }
   },
   methods: {
     async fetchUserFollowings(userId) {
       try {
         const response = await userAPI.getUserFollowings({ userId });
-
         if (response.status !== 200) {
           throw new Error(response.data.message);
         }
         this.user = userId;
-        this.allFollowings = response.data;
 
-        console.log("UserProfile response.data", response.data);
+        console.log(response.data);
+        this.allFollowings = response.data;
 
         this.isLoading = false;
       } catch (error) {
         this.isLoading = false;
         Toast.fire({
           icon: "error",
-          title: "無法取得使用者資料，請稍後再試",
+          title: "無法取得正在跟隨資料，請稍後再試",
         });
       }
+    },
+    filterFollowings() {
+      this.allFollowings.filter(following => following.isFollowed);
     }
-    
+  },
+  watch: {
+    allFollowings: () => {
+      this.filterFollowings();
+    },
+    deep: true,
   },
 };
 </script>

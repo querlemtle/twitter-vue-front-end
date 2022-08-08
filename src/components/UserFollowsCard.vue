@@ -12,25 +12,28 @@
             />
           </router-link>
         </div>
-        <div class="card-info" >
-          <div class="card-header ">
+        <div class="card-info">
+          <div class="card-header">
             <p class="user-name">
               <router-link :to="{ name: 'user', params: { id: follower.id } }">
                 <p class="user-name">{{ follower.name }}</p>
               </router-link>
             </p>
-            <button class="btn-border btn-clip btn-50 user-follow-btn"
+            <button
+              class="btn-border btn-clip btn-50 user-follow-btn"
               v-if="follower.id !== currentUser.id"
               :active="follower.isFollowed"
               @click="changeFollowingCount(follower.isFollowed)"
-              @click.prevent.stop="toggleFollowUser(follower.isFollowed, follower.id)"
+              @click.prevent.stop="
+                toggleFollowUser(follower.isFollowed, follower.id)
+              "
             >
               {{ follower.isFollowed ? "正在跟隨" : "跟隨" }}
             </button>
           </div>
           <div class="card-body">
             <p class="introduction">
-               {{ follower.introduction }}
+              {{ follower.introduction }}
             </p>
           </div>
         </div>
@@ -40,7 +43,6 @@
 </template>
 
 <script>
-
 import { emptyImageFilter } from "../utils/mixins";
 import followsAPI from "../apis/followship";
 import { mapState } from "vuex";
@@ -61,63 +63,49 @@ export default {
   },
   data() {
     return {
-      follower: this.initialFollowing,
+      follower: this.initialFollowing || this.initialFollower,
     };
   },
   methods: {
     changeFollowingCount(toggleIsFollowed) {
-      console.log("step 1. changeFollowingCount is click")
-      this.$emit('change-count',toggleIsFollowed)
-    },
-    async fetchTopUsers() {
-      try {
-        const { data } = await followsAPI.getTopUsers();
-        this.popularUsers = data;
-      } catch (error) {
-        console.error(error.response.data.message);
-        this.isTopUsersUnavailable = true;
-      }
+      this.$emit("change-count", toggleIsFollowed);
     },
     async toggleFollowUser(isUserFollowed, userId) {
       try {
         // 已經跟隨該 user
         if (isUserFollowed) {
           // DETELE /api/followships/:followingId 取消跟隨
-          const response = await followsAPI.unFollowUser(userId);
-
+          const response = await followsAPI.unFollowUser({ userId });
+          console.log(response.data);
           if (response.data.status === "success") {
             Toast.fire({
               icon: "success",
               title: "成功取消跟隨",
             });
 
-          // stop
-          // //  向 User 傳遞值有變動
-          // this.$emit('after-click-followBtn', "unFollow") 
           } else if (response.data.status === "error") {
             throw new Error(response.data.message);
           }
         } else {
           // POST /api/followships 進行跟隨
-          const response = await followsAPI.followUser(userId);
+          const response = await followsAPI.followUser({ userId });
 
           if (response.data.status === "success") {
             Toast.fire({
               icon: "success",
               title: "成功跟隨",
             });
-
           } else if (response.data.status === "error") {
             throw new Error(response.data.message);
           }
         }
-        // stop
-        // //  向 User 傳遞值有變動
-        //   this.$emit('after-click-followBtn', "addFollow") 
-        
-        // 修改該 user.isFollowed
-        const targetIndex = this.popularUsers.findIndex(user => user.id === userId);
-        this.popularUsers[targetIndex].isFollowed = !this.popularUsers[targetIndex].isFollowed;
+
+          if (this.$route.name === "user-followings") {
+            this.$emit("update-followings");
+          } else if (this.$route.name === "user-followers") {
+            this.$emit("update-followers");
+          }
+
 
       } catch (error) {
         console.error(error.response.data.message);
@@ -202,5 +190,4 @@ button[active] {
   background-color: var(--main-color);
   color: #ffffff;
 }
-
 </style>

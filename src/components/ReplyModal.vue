@@ -59,7 +59,6 @@
               placeholder="推你的回覆"
               v-model="replyContent"
               @input="clearErrorMessage"
-              maxlength="140"
             ></textarea>
           </div>
         </div>

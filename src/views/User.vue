@@ -120,7 +120,6 @@ export default {
 
         this.user = response.data;
 
-
         this.user = {
           ...this.user,
           introduction: this.user.introduction ? this.user.introduction : "",

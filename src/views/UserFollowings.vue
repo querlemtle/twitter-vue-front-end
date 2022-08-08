@@ -43,7 +43,7 @@ import userAPI from "./../apis/user";
 import { Toast } from "../utils/helpers";
 
 export default {
-  name: "Main",
+  name: "UserFollowings",
   data() {
     return {
       user:[],

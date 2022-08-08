@@ -43,7 +43,7 @@ import userAPI from "./../apis/user";
 import { Toast } from "../utils/helpers";
 
 export default {
-  name: "Main",
+  name: "UserFollowers",
   data() {
     return {
       user: [],
@@ -60,16 +60,6 @@ export default {
     // 取得動態路由位置
     const { id: userId } = this.$route.params;
     this.fetchUserFollowers(userId);
-
-    switch (this.$route.name) {
-      case "user-followers":
-        // 顯示[追隨者]清單
-        break;
-    
-      case "user-followings":
-        // 顯示[正在追隨]清單
-        break;
-    }
   },
   methods: {
     async fetchUserFollowers(userId) {

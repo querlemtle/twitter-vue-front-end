@@ -1,22 +1,22 @@
 <template>
   <div class="card-container">
     <div v-for="reply in replyTweets" :key="reply.id" class="user-reply-tweets">
-
-      <router-link
-        :to="{ name: 'user', params: { id: currentUser.id } }"
-      >
-        <img class="user-image-sm"
-        :src="currentUser.avatar | emptyImage"  alt="" />
+      <router-link :to="{ name: 'user', params: { id: user.id } }">
+        <img
+          class="user-image-sm"
+          :src="user.avatar | emptyImage"
+          alt=""
+        />
       </router-link>
 
       <div class="card-info">
         <div class="card-header">
           <div class="user-naming">
-            <p class="user-name">{{ currentUser.name }}</p>
+            <p class="user-name">{{ user.name }}</p>
             <p class="user-handle">
-              @{{ currentUser.account }}<span>・</span>
+              @{{ user.account }}<span>・</span>
               <span class="time-stamp">{{
-                currentUser.createdAt | fromNow
+                reply.createdAt | fromNow
               }}</span>
             </p>
           </div>
@@ -25,14 +25,9 @@
           <div class="user-naming">
             <p class="user-handle">
               <span> 回覆 </span>
-              <!-- todo: 這邊連結過去的畫面和預期不同 -->
-              <router-link
-                :to="{ name: 'user', params: { id: reply.UserId } }"
-              >
                 <span class="original-tweet ms-1"
                   >@{{ reply.replyUserAccount }}</span
                 >
-              </router-link>
             </p>
           </div>
         </div>
@@ -61,6 +56,7 @@ export default {
   data() {
     return {
       replyTweets: [],
+      user: {},
     };
   },
   // 從 Vuex 取得 currentUser 的資料
@@ -71,23 +67,49 @@ export default {
     // 取得動態路由位置
     const { id: userId } = this.$route.params;
     this.fetchReplyTweets(userId);
+    this.fetchUserProfile(userId);
+  },
+  beforeRouteUpdate(to, from, next) {
+    const { id } = to.params;
+    this.fetchReplyTweets(id);
+    this.fetchUserProfile(id);
+    next();
   },
   methods: {
     async fetchReplyTweets(userId) {
       try {
-        const response  = await userAPI.getUserReplyTweets({ userId });
-        
-        if(response.status !== 200){
-          throw new Error(response.message)
+        const response = await userAPI.getUserReplyTweets({ userId });
+
+        if (response.status !== 200) {
+          throw new Error(response.data.message);
         }
-        
+
         this.replyTweets = response.data;
       } catch (error) {
-        console.log(error.response.data.message)
+        console.log(error.response.data.message);
         Toast.fire({
           icon: "error",
-          title: "無法取得 replyTweets",
+          title: "無法取得回覆推文",
         });
+      }
+    },
+    async fetchUserProfile(userId) {
+      try {
+        const response = await userAPI.getUser({ userId });
+
+        if (response.status !== 200) {
+          throw new Error(response.data.message);
+        }
+
+        this.user = response.data;
+
+        this.user = {
+          ...this.user,
+          introduction: this.user.introduction ? this.user.introduction : "",
+        };
+        this.isLoading = false;
+      } catch (error) {
+        console.error(error);
       }
     },
   },

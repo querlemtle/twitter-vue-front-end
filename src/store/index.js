@@ -19,7 +19,7 @@ export default new Vuex.Store({
       createdAt: '',
       updatedAt: ''
     },
-    isAuthenticated: false
+    isAuthenticated: false,
   },
   mutations: {
     setCurrentUser(state, currentUser) {

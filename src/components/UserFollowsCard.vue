@@ -64,20 +64,6 @@ export default {
       follower: this.initialFollowing,
     };
   },
-  created() {
-    // console.log(this.$route.name);
-    switch (this.$route.name) {
-      case "user-followers":
-        // 顯示[追隨者]清單
-        this.follower = this.initialFollower;
-        break;
-
-      case "user-followings":
-        // 顯示[正在追隨]清單
-        this.follower = this.initialFollowing;
-        break;
-    }
-  },
   methods: {
     changeFollowingCount(toggleIsFollowed) {
       console.log("step 1. changeFollowingCount is click")

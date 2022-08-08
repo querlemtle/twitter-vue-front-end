@@ -11,7 +11,6 @@
         placeholder="有什麼新鮮事？"
         v-model="tweetContent"
         @input="clearErrorMessage"
-        maxlength="140"
       ></textarea>
     </div>
     <div class="tweet-footer">

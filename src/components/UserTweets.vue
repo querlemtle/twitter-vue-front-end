@@ -2,21 +2,17 @@
   <div class="card-container">
     <Spinner v-if="isLoading" />
     <div v-for="tweet in tweets" :key="tweet.id" class="user-tweets">
-      <router-link :to="{ name: 'user', params: { id: currentUser.id } }">
-        <img
-          class="user-image-sm"
-          :src="currentUser.avatar | emptyImage"
-          alt=""
-        />
+      <router-link :to="{ name: 'user', params: { id: tweet.userId } }">
+        <img class="user-image-sm" :src="user.avatar | emptyImage" alt="" />
       </router-link>
       <div class="card-info">
         <div class="card-header">
           <div class="user-naming">
-            <router-link :to="{ name: 'user', params: { id: currentUser.id } }">
-              <p class="user-name">{{ currentUser.name }}</p>
+            <router-link :to="{ name: 'user', params: { id: tweet.UserId } }">
+              <p class="user-name">{{ user.name }}</p>
             </router-link>
             <p class="user-handle">
-              @{{ currentUser.account }}<span>・</span>
+              @{{ user.account }}<span>・</span>
               <span class="time-stamp">{{ tweet.createdAt | fromNow }}</span>
             </p>
           </div>
@@ -63,8 +59,6 @@
         </div>
       </div>
     </div>
-    <!-- todo: not yet -->
-    <!-- 改 -->
     <ReplyModal
       v-show="show === true"
       :show="tweetActive"
@@ -78,11 +72,9 @@
 import Spinner from "../components/Spinner.vue";
 import ReplyModal from "./../components/ReplyModal.vue";
 import { fromNowFilter } from "./../utils/mixins";
-
 import likesAPI from "./../apis/like";
 import userAPI from "./../apis/user";
 import { Toast } from "../utils/helpers";
-// 載入 Vuex
 import { mapState } from "vuex";
 
 export default {
@@ -98,9 +90,9 @@ export default {
       tweetActive: {},
       isLoading: true,
       tweets: [],
+      user: {}
     };
   },
-  // 從 Vuex 取得 currentUser 的資料
   computed: {
     ...mapState(["currentUser"]),
   },
@@ -108,11 +100,13 @@ export default {
     // 取得動態路由位置
     const { id: userId } = this.$route.params;
     this.fetchUserTweets(userId);
+    this.fetchUserProfile(userId);
   },
   // 追蹤路由變化
   beforeRouteUpdate(to, from, next) {
     const { id } = to.params;
     this.fetchUserTweets(id);
+    this.fetchUserProfile(id);
     next();
   },
 
@@ -122,7 +116,7 @@ export default {
         const response = await userAPI.getUserTweets({ userId });
 
         if (response.status !== 200) {
-          throw new Error(response.message);
+          throw new Error(response.data.message);
         }
         const tweetsData = response.data;
 
@@ -165,7 +159,6 @@ export default {
         });
       }
     },
-    // todo: 有問題
     async deleteLike(tweetId) {
       try {
         const response = await likesAPI.unLikeTweet(tweetId);
@@ -191,19 +184,30 @@ export default {
         });
       }
     },
+    async fetchUserProfile(userId) {
+      try {
+        const response = await userAPI.getUser({ userId });
 
+        if (response.status !== 200) {
+          throw new Error(response.data.message);
+        }
+
+        this.user = response.data;
+
+        this.user = {
+          ...this.user,
+          introduction: this.user.introduction ? this.user.introduction : "",
+        };
+        this.isLoading = false;
+      } catch (error) {
+        console.error(error)
+      }
+    },
     handleReplyModal(tweet) {
       this.show = true;
       this.tweetActive = tweet;
       console.log("tweet", tweet);
     },
-
-    // todo: 未完成
-    // afterReplySubmit(payload) {
-    //   // this.show = false;
-    //   // this.tweetActive = {};
-    //   console.log('payload',payload)
-    // },
   },
 };
 </script>

@@ -100,6 +100,7 @@ import { emptyImageFilter } from "./../utils/mixins";
 import { mapState } from "vuex";
 import followsAPI from "../apis/followship";
 import { Toast } from "../utils/helpers";
+import { bus } from '../main';
 
 export default {
   name: "UserProfileCard",
@@ -122,7 +123,7 @@ export default {
       // 通知 User.vue 顯示 edit modal
       this.$emit("show-edit-modal", bool);
     },
-            async toggleFollowUser(isUserFollowed, userId) {
+    async toggleFollowUser(isUserFollowed, userId) {
       try {
         // 已經跟隨該 user
         if (isUserFollowed) {
@@ -167,6 +168,9 @@ export default {
         });
       }
     },
+    viewingUser() {
+      bus.$emit("viewing-user", this.user);
+    }
   },
   computed: {
     ...mapState(["currentUser"]),

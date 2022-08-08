@@ -16,5 +16,12 @@ export default {
     return apiHelper.get(`/users/${userId}/followers`, {
       headers: { Authorization: `Bearer ${getToken()}` }
     })
+  },
+  editSelfData(userId, { name, introduction, avatar, banner }) {
+    return apiHelper.put(`/users/${userId}`, {
+      name, introduction, avatar, banner
+    }, {
+      headers: { Authorization: `Bearer ${getToken()}` }
+    })
   }
 }

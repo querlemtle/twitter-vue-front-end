@@ -13,31 +13,69 @@
             />
             <div class="modal-title">編輯個人資料</div>
           </div>
-          <!-- todo: save button -->
-          <button class="save-btn btn-bg btn-border">儲存</button>
+          <button
+            class="save-btn btn-bg btn-border"
+            @click.prevent.stop="handleEditModalSubmit"
+            :disabled="isProcessing"
+          >
+            儲存
+          </button>
         </div>
 
         <div class="profile-wrapper position-relative">
           <!-- icon -->
           <label for="banner-image" class="banner-icon change-photo"></label>
 
-          <label for="banner-image" class="banner-icon cancel-change"></label>
-
+          <label
+            class="banner-icon cancel-change"
+            @click.prevent.stop="handleCancel"
+          ></label>
+          <!-- preview banner -->
           <img
+            v-if="tempUserBanner"
+            :src="tempUserBanner"
+            class="banner-img w-100 banner-preview"
+          />
+          <img
+            v-if="!tempUserBanner"
             class="banner-img w-100"
-            :src="require('../assets/pictures/banner.png')"
-            style="height: 200px"
-            alt=""
+            :src="currentUser.banner | emptyBanner"
+            alt="banner"
           />
 
+          <input
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            class="upload-banner"
+            id="banner-image"
+            @change="handleBannerChange"
+          />
           <div class="bg-mask banner-mask"></div>
 
           <div class="person-img">
-            <label for="avatar-image" class="avatar-icon avatar-change-photo"></label>
+            <label
+              for="avatar-image"
+              class="avatar-icon avatar-change-photo"
+            ></label>
             <img
               class="avatar-img rounded-circle position-absolute"
-              src="./../assets/pictures/dummyUser2.png"
+              :src="currentUser.avatar | emptyImage"
               alt="person-image"
+            />
+            <!-- preview avatar -->
+            <img
+              v-if="tempUserAvatar"
+              :src="tempUserAvatar"
+              class="avatar-img rounded-circle position-absolute avatar-preview"
+              width="200"
+              height="200"
+            />
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              class="upload-avatar"
+              id="avatar-image"
+              @change="handleAvatarChange"
             />
 
             <div class="avatar-mask"></div>
@@ -52,19 +90,31 @@
                 type="text"
                 name="name"
                 id="name"
-                placeholder="Joe Doe"
+                :class="{ error: isNameInvalid }"
+                v-model="tempUserName"
+                @input="isNameInvalid = false"
+                :placeholder="currentUser.name"
                 required
               />
+              <span v-if="isNameInvalid" class="error-message mx-3"
+                >{{ nameErrorMessage }}</span
+              >
             </div>
-            <div class="form-input form-introduction d-flex flex-column">
+            <div class="form-input form-introduction d-flex">
               <label for="introduction" class="form-input-text">自我介紹</label>
               <input
                 type="text"
                 name="introduction"
                 id="introduction"
-                placeholder="Joe Doe"
+                :class="{ error: isIntroTooLong }"
+                v-model="tempUserIntro"
+                @input="isIntroTooLong = false"
+                :placeholder="currentUser.introduction"
                 required
               />
+              <span v-if="isIntroTooLong" class="error-message mx-3"
+                >自我介紹不可超過 160 字！</span
+              >
             </div>
           </form>
         </div>
@@ -75,30 +125,135 @@
 
 <script>
 import { emptyImageFilter } from "./../utils/mixins";
+import { mapState } from "vuex";
+import { Toast } from "../utils/helpers";
+import usersAPI from "../apis/user";
 
 export default {
   name: "UserEditModal",
   mixins: [emptyImageFilter],
-
   props: {
-    // 從 Home.vue 傳來
+    // 從 User.vue 傳來
     show: Boolean,
+  },
+  data() {
+    return {
+      tempUserName: "",
+      tempUserIntro: "",
+      tempUserAvatar: "",
+      tempUserBanner: "",
+      isNameInvalid: false,
+      nameErrorMessage: "",
+      isIntroTooLong: false,
+      isProcessing: false,
+    };
+  },
+  computed: {
+    ...mapState(["currentUser"]),
+  },
+  methods: {
+    async handleEditModalSubmit() {
+      try {
+        // 若名稱沒填，防止請求送出
+        if (!this.tempUserName) {
+          this.isNameInvalid = true;
+          this.nameErrorMessage = "名稱不可空白";
+          return;
+        }
+
+        // 名稱超過 50 字，防止請求送出
+        if (this.tempUserName.length > 50) {
+          this.isNameInvalid = true;
+          this.nameErrorMessage = "名稱不可超過 50 字！";
+          return;
+        }
+
+        // 自我介紹超過 160 字，防止請求送出
+        if (this.tempUserIntro.length > 160) {
+          this.isIntroTooLong = true;
+          return;
+        }
+        // 暫時關閉按鈕
+        this.isProcessing = true;
+     
+        const response = await usersAPI.editSelfData(this.currentUser.id, {
+          name: this.tempUserName,
+          introduction: this.tempUserIntro,
+          avatar: this.tempUserAvatar,
+          banner: this.tempUserBanner,
+        });
+
+        if (response.data.status === "error") {
+          throw new Error(response.data.message);
+        }
+
+        Toast.fire({
+          icon: "success",
+          title: "更改個人資料成功！",
+        });
+        // close the modal after submitted
+        this.$emit("close");
+        this.isProcessing = false;
+
+      } catch (error) {
+        this.isProcessing = false;
+        console.log(error.response.data.message);
+        switch (error.response.data.message) {
+          case "permission denied":
+            Toast.fire({
+              icon: "error",
+              title: "您沒有權限修改",
+            });
+            break;
+          case "Error: Target user not exist":
+            Toast.fire({
+              icon: "error",
+              title: "使用者不存在",
+            });
+            break;
+          default:
+            Toast.fire({
+              icon: "error",
+              title: "修改個人資料失敗，請再試一次",
+            });
+            break;
+        }
+      }
+    },
+    handleAvatarChange(event) {
+      const { files } = event.target;
+      // 如果有上傳檔案，產生預覽圖
+      if(event.target.files.length !== 0){
+        const imageURL = window.URL.createObjectURL(files[0]);
+        this.tempUserAvatar = imageURL;
+      }
+    },
+    handleBannerChange(event) {
+      const { files } = event.target;
+      // 如果有上傳檔案，產生預覽圖
+      if(event.target.files.length !== 0){
+        const imageURL = window.URL.createObjectURL(files[0]);
+        this.tempUserBanner = imageURL;
+      }
+    },
+    handleCancel() {
+      this.tempUserBanner = "";
+    },
   },
 };
 </script>
 
 <style scoped>
-
 .modal-container {
   min-width: 634px;
-  height: 610px;
+  height: 50%;
 }
 
 .modal-body {
   width: 100%;
-  position: absolute;
-  top: 58%;
-  padding: 1rem;
+  padding: 5rem 1rem;
+  border-bottom-left-radius: 0.875rem;
+  border-bottom-right-radius: 0.875rem;
   background-color: var(--dark-10);
 }
 
@@ -123,18 +278,33 @@ export default {
   line-height: 145px;
 }
 
+.error-message {
+  color: var(--danger-color);
+}
+
+.error {
+  border-bottom: 2px solid var(--danger-color);
+}
+
 /* same as UserProfileCard */
 .avatar-img {
+  position: absolute;
   top: 124px;
   left: 10%;
+  z-index: 66;
   transform: translate(-10%);
   width: 140px;
   height: 140px;
   border: 4px #ffffff solid;
 }
 
+.banner-img {
+  height: 200px;
+}
+
 /* banner、avatar icon(change-photo、cancel) */
-.banner-icon, .avatar-icon {
+.banner-icon,
+.avatar-icon {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -146,11 +316,28 @@ export default {
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
-  z-index: 1;
+  z-index: 999;
 }
 
 .banner-icon.change-photo {
   background-image: url("./../assets/pictures/change-photo.png");
+}
+
+.upload-banner,
+.upload-avatar {
+  position: absolute;
+  z-index: 999;
+  display: none;
+}
+
+.upload-banner {
+  left: 10%;
+  top: 90%;
+}
+
+.upload-avatar {
+  left: 45%;
+  top: 45%;
 }
 
 .banner-icon.cancel-change {
@@ -189,6 +376,12 @@ export default {
   height: 140px;
   background-color: rgba(23, 23, 37, 0.5);
   border-radius: 50%;
+  z-index: 66;
+}
+
+.avatar-preview,
+.banner-preview {
+  z-index: 66;
 }
 
 </style>

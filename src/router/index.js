@@ -36,11 +36,6 @@ const routes = [
   {
     path: '/user/:id',
     name: 'user',
-    component: () => import('../views/User.vue')
-  },
-  {
-    path: '/user/:id',
-    name: 'user',
     redirect: '/user/:id/tweets',
     component: () => import("../views/User.vue"),
     children: [

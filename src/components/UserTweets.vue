@@ -1,14 +1,13 @@
 <template>
   <div class="card-container">
-    <!-- test -->
     <Spinner v-if="isLoading"/>
-    <!-- 原先在此渲染，改在父層渲染 -->
     <div v-for="tweet in tweets" :key="tweet.id" class="user-tweets">
-      <!--  到當前使用者的路由 -->
-      <!-- <router-link
-        :to="{ name: 'user', params: { id: tweet.User.id } }"
-      > -->
-      <div class="user-image-sm"></div>
+      <router-link
+        :to="{ name: 'user', params: { id: currentUser.id } }"
+      >
+        <img class="user-image-sm"
+        :src="currentUser.avatar | emptyImage"  alt="" />
+      </router-link>
       <div class="card-info">
         <div class="card-header">
           <div class="user-naming">
@@ -37,22 +36,22 @@
           <div class="icon-section">
              <div class="footer-icon like-icon">
               <div 
-              v-if="!tweet.isLiked"
+              v-if="tweet.isLiked"
               @click.stop.prevent="deleteLike(tweet.id)"
               class="section-like d-flex">
                 <img
                 class="counter like-icon"
-                src="../assets/pictures/like.png"
+                src="../assets/pictures/like-icon.svg"
                 alt=""
               />{{ tweet.likeCounts }}
               </div>
               <div 
-              v-if="tweet.isLiked"
+              v-else
               @click.stop.prevent="addLike(tweet.id)"
               class="section-like d-flex">
                 <img
                 class="counter like-icon-add"
-                src="../assets/pictures/like-icon.svg"
+                src="../assets/pictures/like.png"
                 alt=""
               />{{ tweet.likeCounts }}
               </div>
@@ -65,9 +64,9 @@
     <!-- 改 -->
     <ReplyModal 
       v-show="show === true"
-      :show="show === true"
-      :tweet="tweetActive"
-      @after-reply-submit="afterReplySubmit"
+      :show="tweetActive"
+      :userTweet="tweetActive"
+      
     />
   </div>
 </template>
@@ -78,7 +77,7 @@ import Spinner from '../components/Spinner.vue'
 import ReplyModal from "./../components/ReplyModal.vue"
 import { fromNowFilter } from "./../utils/mixins";
 
-// import likesAPI from "./../apis/like";
+import likesAPI from "./../apis/like";
 import userAPI from "./../apis/user";
 import { Toast } from "../utils/helpers";
 // 載入 Vuex
@@ -116,18 +115,16 @@ export default {
   },
   
   methods: {
-    // OK 向資料庫撈取 使用者 tweets 資料
     async fetchUserTweets(userId) {
       try {
         const response  = await userAPI.getUserTweets({ userId });
         
-        // if (response.status !== 200) {
-        //   throw new Error(response.message);
-        // }
+        if (response.status !== 200) {
+          throw new Error(response.message);
+        }
         const tweetsData = response.data
         
-        console.log('tweetsData', tweetsData)
-        // this.tweets = tweetsData
+        this.tweets = tweetsData
 
         this.isLoading = false;
       } catch (error) {
@@ -139,72 +136,79 @@ export default {
         });
       }
     },
-    // 未串 API 前測試
-    // addLike(tweetId) {
-    //   console.log('tweetId', tweetId)
-    // },
-    // deleteLike(tweetId) {
-    //   console.log('tweetId', tweetId)
-    // },
-    // todo: 有問題
-    // async addLike (tweetId) {
-    //   try {
-    //     const response = await likesAPI.likeTweet(tweetId);
-        
-    //     // 錯誤狀態處理
-    //       if (response.data.status === "error") {
-    //         throw new Error(response.data.message);
-    //       }
-    //       // 更新 like 數
-          
-    //     // if (data.status !== 'success') {
-    //     //   throw new Error(data.message)
-    //     // }
-    //     // this.tweet.isLiked = true
-    //     // this.tweet.likesCounts += 1
-    //   } catch (error) {
-    //     Toast.fire({
-    //       icon: 'error',
-    //       title: '無法按喜歡，請稍後再試'
-    //     })
-    //   }
-    // },
-    // todo: 有問題
-    // async deleteLike (tweetId) {
-    //   try {
-    //     const  data  = await likesAPI.unLikeTweet({ tweetId })
-    //     console.log('delete like', data)
+    async addLike (tweetId) {
+      try {
+        const response = await likesAPI.likeTweet(tweetId);
+        console.log('response',response)
+        console.log('response.data.status',response.data.status)
 
-    //     // if (data.status !== 'success') {
-    //     //   throw new Error(data.message)
-    //     // }
-    //     // this.tweet.isLiked = false
-    //     // this.tweet.likesCounts -= 1
-    //   } catch (error) {
-    //     Toast.fire({
-    //       icon: 'error',
-    //       title: '無法按喜歡，請稍後再試'
-    //     })
-    //   }
-    // },
-    // 
+        if (response.data.status !== 'success') {
+          throw new Error(response.data.message)
+        }
+        
+        this.tweets = this.tweets.map((tweet) => {
+          if (tweet.id === tweetId) {
+            return {
+              ...tweet,
+              isLiked: false,
+              likeCounts: tweet.likeCounts + 1,
+            };
+          }
+          return tweet;
+        });
+      } catch (error) {
+        Toast.fire({
+          icon: 'error',
+          title: '無法按喜歡，請稍後再試'
+        })
+      }
+    },
+    // todo: 有問題
+    async deleteLike (tweetId) {
+      try {
+        const  response  = await likesAPI.unLikeTweet( tweetId)
+        console.log('delete like', response)
+
+        if (response.data.status !== 'success')  {
+          throw new Error(response.data.message)
+        }
+        this.tweets = this.tweets.map((tweet) => {
+          if (tweet.id === tweetId) {
+            return {
+              ...tweet,
+              isLiked: false,
+              likeCounts: tweet.likeCounts - 1,
+            };
+          }
+          return tweet;
+        });
+      } catch (error) {
+        Toast.fire({
+          icon: 'error',
+          title: '無法取消喜歡，請稍後再試'
+        })
+      }
+    },
+    
     handleReplyModal(tweet) {
       this.show = true;
       this.tweetActive = tweet;
+      console.log('tweet',tweet)
     },
   
     
     // todo: 未完成
-    afterReplySubmit(payload) {
-      console.log('payload',payload)
-    },
+    // afterReplySubmit(payload) {
+    //   // this.show = false;
+    //   // this.tweetActive = {};
+    //   console.log('payload',payload)
+    // },
   },
 };
 </script>
 
 <style scoped>
 .user-image-sm {
-  padding: 1rem;
   margin-right: 0.5rem;
   background-image: url("./../assets/pictures/dummyUser.png");
   background-size: contain;
@@ -222,5 +226,8 @@ export default {
 .like-icon, .like-icon-add {
   margin-right: 10px;
   
+}
+.like-icon[active] {
+  background-image: url("./../assets/pictures/icon-like.png");
 }
 </style>

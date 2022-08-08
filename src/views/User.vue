@@ -9,7 +9,7 @@
         :user="user"
         @show-edit-modal="toggleEditModal(true)" />
         <div>
-          <ul class="nav-tab d-flex">
+          <ul class="nav-tab d-flex w-100">
             <li v-for="tab in tabs" :key="tab.id" class="nav-item">
               <router-link :to="tab.path" class="nav-link">
                 {{ tab.title }}
@@ -154,7 +154,6 @@ export default {
   flex-wrap: nowrap;
 }
 .nav-link.active {
-  width: 80px;
   box-shadow: 0px 2px;
   justify-content: center;
   padding: 10px 15px;

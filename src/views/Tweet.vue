@@ -180,20 +180,4 @@ export default {
   padding-left: 0;
   padding-right: 0;
 }
-
-/* Scroll bar */
-.scrollable-part {
-  height: 100vh;
-  overflow-y: scroll;
-}
-
-.scrollable-part::-webkit-scrollbar {
-  background-color: #fafafa;
-  width: 15px;
-}
-
-.scrollable-part::-webkit-scrollbar-thumb {
-  background-color: #c1c1c1;
-  border-radius: 4px;
-}
 </style>

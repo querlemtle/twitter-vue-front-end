@@ -126,20 +126,4 @@ export default {
   height: 0.625rem;
   background-color: var(--page-divider);
 }
-
-/* Scroll bar */
-.scrollable-part {
-  height: 100vh;
-  overflow-y: scroll;
-}
-
-.scrollable-part::-webkit-scrollbar {
-  background-color: #fafafa;
-  width: 15px;
-}
-
-.scrollable-part::-webkit-scrollbar-thumb {
-  background-color: #c1c1c1;
-  border-radius: 4px;
-}
 </style>

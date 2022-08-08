@@ -24,27 +24,27 @@ export default {
       headers: { Authorization: `Bearer ${getToken()}` }
     })
   },
-  getUserTweets ({ userId }) {
+  getUserTweets({ userId }) {
     return apiHelper.get(`/users/${userId}/tweets`, {
       headers: { Authorization: `Bearer ${getToken()}` }
     })
   },
-  getUserReplyTweets ({ userId }) {
+  getUserReplyTweets({ userId }) {
     return apiHelper.get(`/users/${userId}/replied_tweets`, {
       headers: { Authorization: `Bearer ${getToken()}` }
     })
   },
-  getUserLikeTweets ({ userId }) {
+  getUserLikeTweets({ userId }) {
     return apiHelper.get(`/users/${userId}/likes`, {
       headers: { Authorization: `Bearer ${getToken()}` }
     })
   },
-  getUser ({ userId }) {
+  getUser({ userId }) {
     return apiHelper.get(`/users/${userId}`, {
       headers: { Authorization: `Bearer ${getToken()}` }
     })
   },
-  updateUser ({ userId, formData }) {
+  updateUser({ userId, formData }) {
     return apiHelper.put(`/users/${userId}`, formData)
   }
 }

@@ -411,3 +411,19 @@ user-like-tweets setting */
   height: 2.5rem;
   border-radius: 50px;
 }
+
+/* Scroll bar */
+.scrollable-part {
+  height: 100vh;
+  overflow-y: scroll;
+}
+
+.scrollable-part::-webkit-scrollbar {
+  background-color: #fafafa;
+  width: 15px;
+}
+
+.scrollable-part::-webkit-scrollbar-thumb {
+  background-color: #c1c1c1;
+  border-radius: 4px;
+}

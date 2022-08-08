@@ -4,7 +4,7 @@
       <div class="col">
         <SideBar />
       </div>
-      <div class="col-7">
+      <div class="col-7 scrollable-part">
         <UserProfileCard 
         :user="user"
         @show-edit-modal="toggleEditModal(true)" />
@@ -17,15 +17,6 @@
             </li>
           </ul>
         </div>
-
-        <!-- todo: 這邊使用 router-link 畫面會 error -->
-        <!-- <router-link
-          v-for="tweet in tweets"
-          :key="tweet.id"
-          :initial-tweets="tweets"
-        ></router-link>
-       -->
-
         <router-view />
       </div>
       <div class="col">
@@ -122,7 +113,7 @@ export default {
         const response = await userAPI.getUser({ userId });
 
         if (response.status !== 200) {
-          throw new Error(response.message);
+          throw new Error(response.data.message);
         }
 
         this.user = response.data;

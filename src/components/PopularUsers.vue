@@ -6,14 +6,21 @@
         目前無法取得熱門使用者...
       </div>
       <div class="card-info" v-for="user in popularUsers" :key="user.id">
+        <router-link :to="{ name: 'user', params: { id: user.id } }">
         <img
           class="user-image-sm"
           :src="user.avatar | emptyImage"
           alt="user-image"
         />
+        </router-link>
+
         <div class="user-naming-col">
+          <router-link :to="{ name: 'user', params: { id: user.id } }">
           <p class="user-name">{{ user.name }}</p>
+          </router-link>
+          <router-link :to="{ name: 'user', params: { id: user.id } }">
           <p class="user-handle">@{{ user.account }}</p>
+          </router-link>
         </div>
         <button
           class="btn-border btn-50 btn-clip user-follow-btn"

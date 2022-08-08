@@ -28,16 +28,17 @@
 
           <label
             class="banner-icon cancel-change"
+            v-if="isCancelBtnShown"
             @click.prevent.stop="handleCancel"
           ></label>
           <!-- preview banner -->
           <img
-            v-if="tempUserBanner"
-            :src="tempUserBanner"
+            v-if="tempUser.banner"
+            :src="tempUser.banner"
             class="banner-img w-100 banner-preview"
           />
           <img
-            v-if="!tempUserBanner"
+            v-if="!tempUser.banner"
             class="banner-img w-100"
             :src="currentUser.banner | emptyBanner"
             alt="banner"
@@ -64,8 +65,8 @@
             />
             <!-- preview avatar -->
             <img
-              v-if="tempUserAvatar"
-              :src="tempUserAvatar"
+              v-if="tempUser.avatar"
+              :src="tempUser.avatar"
               class="avatar-img rounded-circle position-absolute avatar-preview"
               width="200"
               height="200"
@@ -91,9 +92,8 @@
                 name="name"
                 id="name"
                 :class="{ error: isNameInvalid }"
-                v-model="tempUserName"
+                v-model="tempUser.name"
                 @input="isNameInvalid = false"
-                :placeholder="currentUser.name"
                 required
               />
               <span v-if="isNameInvalid" class="error-message mx-3"
@@ -107,9 +107,8 @@
                 name="introduction"
                 id="introduction"
                 :class="{ error: isIntroTooLong }"
-                v-model="tempUserIntro"
+                v-model="tempUser.introduction"
                 @input="isIntroTooLong = false"
-                :placeholder="currentUser.introduction"
                 required
               />
               <span v-if="isIntroTooLong" class="error-message mx-3"
@@ -132,75 +131,54 @@ import usersAPI from "../apis/user";
 export default {
   name: "UserEditModal",
   mixins: [emptyImageFilter],
-  props: {
-    // 從 User.vue 傳來
-    show: Boolean,
-  }, 
-  //  data() {
-  //   return {
-  //     user: {
-  //       id: this.currentUser.id,
-  //       name: this.currentUser.name,
-  //       account: this.currentUser.account,
-  //       avatar: this.currentUser.avatar,
-  //       banner: this.currentUser.banner,
-  //       introduction: this.currentUser.introduction,
-  //     },
-  //   };
-  // },
-  computed: {
-    // 從 Vuex 取得 currentUser 的資料
-    ...mapState(["currentUser"]),
-    nameLength: {
-      get: function () {
-        const length = this.user.name.length;
-        return length;
-      },
-      set: function (newValue) {
-        this.nameLength = newValue;
-      },
-    },
-    introLength: {
-      get: function () {
-        const length = this.user.introduction.length;
-        return length;
-      },
-      set: function (newValue) {
-        this.introLength = newValue;
-      },
-    },
-  },
   data() {
     return {
-      tempUserName: "",
-      tempUserIntro: "",
-      tempUserAvatar: "",
-      tempUserBanner: "",
+      tempUser: {
+        name: "",
+        introduction: "",
+        avatar: "",
+        banner: "",
+      },
       isNameInvalid: false,
       nameErrorMessage: "",
       isIntroTooLong: false,
       isProcessing: false,
+      isCancelBtnShown: false
     };
+  },
+  created() {
+    this.tempUser.name = this.currentUser.name;
+    this.tempUser.introduction = this.currentUser.introduction;
+    this.tempUser.avatar = this.currentUser.avatar;
+    this.tempUser.banner = this.currentUser.banner;
+  },
+  props: {
+    // 從 User.vue 傳來
+    show: Boolean,
+  }, 
+  computed: {
+    // 從 Vuex 取得 currentUser 的資料
+    ...mapState(["currentUser"]),
   },
   methods: {
     async handleEditModalSubmit() {
       try {
         // 若名稱沒填，防止請求送出
-        if (!this.tempUserName) {
+        if (!this.tempUser.name) {
           this.isNameInvalid = true;
           this.nameErrorMessage = "名稱不可空白";
           return;
         }
 
         // 名稱超過 50 字，防止請求送出
-        if (this.tempUserName.length > 50) {
+        if (this.tempUser.name.length > 50) {
           this.isNameInvalid = true;
           this.nameErrorMessage = "名稱不可超過 50 字！";
           return;
         }
 
         // 自我介紹超過 160 字，防止請求送出
-        if (this.tempUserIntro.length > 160) {
+        if (this.tempUser.introduction.length > 160) {
           this.isIntroTooLong = true;
           return;
         }
@@ -208,16 +186,17 @@ export default {
         this.isProcessing = true;
      
         const response = await usersAPI.editSelfData(this.currentUser.id, {
-          name: this.tempUserName,
-          introduction: this.tempUserIntro,
-          avatar: this.tempUserAvatar,
-          banner: this.tempUserBanner,
+          name: this.tempUser.name,
+          introduction: this.tempUser.introduction,
+          avatar: this.tempUser.avatar,
+          banner: this.tempUser.banner,
         });
 
         if (response.data.status === "error") {
           throw new Error(response.data.message);
         }
-
+        // notify User.vue to update user data
+        this.$emit("after-edit-submit");
         Toast.fire({
           icon: "success",
           title: "更改個人資料成功！",
@@ -256,19 +235,24 @@ export default {
       // 如果有上傳檔案，產生預覽圖
       if(event.target.files.length !== 0){
         const imageURL = window.URL.createObjectURL(files[0]);
-        this.tempUserAvatar = imageURL;
+        this.tempUser.avatar = imageURL;
       }
     },
     handleBannerChange(event) {
       const { files } = event.target;
       // 如果有上傳檔案，產生預覽圖
       if(event.target.files.length !== 0){
+        // 顯示取消按鈕
+        this.isCancelBtnShown = true;
         const imageURL = window.URL.createObjectURL(files[0]);
-        this.tempUserBanner = imageURL;
+        this.tempUser.banner = imageURL;
       }
     },
     handleCancel() {
-      this.tempUserBanner = "";
+      // 清空 banner
+      this.tempUser.banner = "";
+      // 隱藏取消按鈕
+      this.isCancelBtnShown = false;
     },
   },
 };
@@ -277,12 +261,12 @@ export default {
 <style scoped>
 .modal-container {
   min-width: 634px;
-  height: 50%;
 }
 
 .modal-body {
   width: 100%;
-  padding: 5rem 1rem;
+  padding: 5rem 1rem 1rem 1rem;
+  max-height: max-content;
   border-bottom-left-radius: 0.875rem;
   border-bottom-right-radius: 0.875rem;
   background-color: var(--dark-10);
@@ -301,12 +285,12 @@ export default {
 }
 
 .form-introduction {
-  height: 147px;
+  height: 12.25vh;
   border-radius: 2px;
 }
 
 .form-introduction input {
-  line-height: 145px;
+  line-height: 12.25vh;
 }
 
 .error-message {

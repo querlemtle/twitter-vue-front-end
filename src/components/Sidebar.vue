@@ -10,7 +10,7 @@
           </router-link>
         </li>
         <li class="nav-item">
-          <router-link :to="{ name: 'user', params: { id: currentUser.id }}" class="nav-link">
+          <router-link :to="{ name: 'user', params: { id: currentUser.id } }" class="nav-link">
             <div class="nav-icon person-icon"></div>
             <span class="nav-title">個人資料</span>
           </router-link>

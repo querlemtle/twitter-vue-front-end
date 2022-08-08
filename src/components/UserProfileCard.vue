@@ -20,12 +20,16 @@
       </div>
       <!-- profile -->
       <div class="profile-wrapper position-relative">
-        <img
+        <div class="profile-cover">
+          <!-- <img :src="user.cover | emptyImage" class="w-100" alt="" /> -->
+          <img
           class="banner-img w-100"
           :src="require('../assets/pictures/banner.png')"
           style="height: 200px"
           alt=""
         />
+        </div>
+        
         <!-- person-img -->
         <div class="person-img">
           <img
@@ -97,7 +101,6 @@ export default {
 
 <style scope>
 .card-group {
-  max-width: 640px;
   border-left: 1px solid var(--border-line-color);
   border-right: 1px solid var(--border-line-color);
 }

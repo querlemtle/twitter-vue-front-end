@@ -1,13 +1,12 @@
 <template>
   <div class="card-container">
     <div v-for="reply in replyTweets" :key="reply.id" class="user-reply-tweets">
-      <!-- <div class="user-image-sm"></div> -->
-      <!-- <router-link :to="{ name: 'user-profile' ,params:{userId: userId}}">
-      <img :src="userAvatar" class="avatar" alt="" />
-      </router-link> -->
-      <!--  -->
-      <router-link :to="{ name: 'user', params: { id: currentUser.id } }">
-        <img :src="currentUser.avatar | emptyImage" class="avatar" alt="" />
+
+      <router-link
+        :to="{ name: 'user', params: { id: currentUser.id } }"
+      >
+        <img class="user-image-sm"
+        :src="currentUser.avatar | emptyImage"  alt="" />
       </router-link>
 
       <div class="card-info">
@@ -76,13 +75,13 @@ export default {
   methods: {
     async fetchReplyTweets(userId) {
       try {
-        if(data.status === "error"){
-          throw new Error(data.message)
+        const response  = await userAPI.getUserReplyTweets({ userId });
+        
+        if(response.status !== 200){
+          throw new Error(response.message)
         }
-        const { data } = await userAPI.getUserReplyTweets({ userId });
-        console.log("data", data);
-
-        this.replyTweets = data;
+        
+        this.replyTweets = response.data;
       } catch (error) {
         console.log(error.response.data.message)
         Toast.fire({
@@ -97,7 +96,6 @@ export default {
 
 <style scoped>
 .user-image-sm {
-  padding: 1rem;
   margin-right: 0.5rem;
   background-image: url("./../assets/pictures/dummyUser.png");
   background-size: contain;

@@ -216,6 +216,7 @@ span.num {
 .btn-edit {
   margin-top: 1rem;
   margin-right: 1rem;
+  color: var(--main-color);
 }
 button[active] {
   background-color: var(--main-color);

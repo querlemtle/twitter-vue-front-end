@@ -23,7 +23,9 @@
         <PopularUsers @change-count="handleChangeCount"/>
       </div>
     </div>
-    <UserEditModal :show="showEditModal" @close="toggleEditModal(false)" />
+    <UserEditModal :show="showEditModal" @close="toggleEditModal(false)"
+    @after-edit-submit="afterEditSubmit"
+    />
   </div>
 </template>
 
@@ -97,7 +99,7 @@ export default {
     toggleEditModal(bool) {
       this.showEditModal = bool;
     },
-    
+ 
     handleChangeCount(value) {
       
       if (value === false) {
@@ -118,7 +120,6 @@ export default {
 
         this.user = response.data;
 
-        console.log("UserProfile response.data", response.data);
 
         this.user = {
           ...this.user,
@@ -132,6 +133,9 @@ export default {
           title: "無法取得使用者資料，請稍後再試",
         });
       }
+    },
+    afterEditSubmit() {
+      this.fetchUserProfile(this.user.id);
     }
   },
 };
@@ -148,7 +152,6 @@ export default {
   box-shadow: 0px 2px;
   justify-content: center;
   padding: 10px 15px;
-  /* todo: 線刪不掉 and 圓弧效果radius:100px  */
 }
 .navbar-nav {
   flex-direction: row;

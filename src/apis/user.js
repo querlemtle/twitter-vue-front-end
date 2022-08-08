@@ -17,10 +17,8 @@ export default {
       headers: { Authorization: `Bearer ${getToken()}` }
     })
   },
-  editSelfData(userId, { name, introduction, avatar, banner }) {
-    return apiHelper.put(`/users/${userId}`, {
-      name, introduction, avatar, banner
-    }, {
+  editSelfData({ userId, formData }) {
+    return apiHelper.put(`/users/${userId}`, formData, {
       headers: { Authorization: `Bearer ${getToken()}` }
     })
   },

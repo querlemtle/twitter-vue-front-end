@@ -2,89 +2,88 @@
   <div>
     <div v-if="show" class="modal-mask">
       <div class="modal-container">
-        <!-- modal header: close button -->
-        <div class="modal-header">
-          <div class="modal-title-wrapper d-flex">
-            <img
-              src="./../assets/pictures/close.png"
-              alt="close-btn"
-              class="close-btn"
-              @click.stop.prevent="$emit('close')"
-            />
-            <div class="modal-title">編輯個人資料</div>
+        <form
+          class="mx-auto w-100"
+          @submit.prevent.stop="handleEditModalSubmit"
+        >
+          <!-- modal header: close button -->
+          <div class="modal-header">
+            <div class="modal-title-wrapper d-flex">
+              <img
+                src="./../assets/pictures/close.png"
+                alt="close-btn"
+                class="close-btn"
+                @click.stop.prevent="$emit('close')"
+              />
+              <div class="modal-title">編輯個人資料</div>
+            </div>
+            <button class="save-btn btn-bg btn-border" :disabled="isProcessing">
+              儲存
+            </button>
           </div>
-          <button
-            class="save-btn btn-bg btn-border"
-            @click.prevent.stop="handleEditModalSubmit"
-            :disabled="isProcessing"
-          >
-            儲存
-          </button>
-        </div>
+          <div class="profile-wrapper position-relative">
+            <!-- icon -->
+            <label for="banner-image" class="banner-icon change-photo"></label>
 
-        <div class="profile-wrapper position-relative">
-          <!-- icon -->
-          <label for="banner-image" class="banner-icon change-photo"></label>
-
-          <label
-            class="banner-icon cancel-change"
-            v-if="isCancelBtnShown"
-            @click.prevent.stop="handleCancel"
-          ></label>
-          <!-- preview banner -->
-          <img
-            v-if="tempUser.banner"
-            :src="tempUser.banner"
-            class="banner-img w-100 banner-preview"
-          />
-          <img
-            v-if="!tempUser.banner"
-            class="banner-img w-100"
-            :src="currentUser.banner | emptyBanner"
-            alt="banner"
-          />
-
-          <input
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            class="upload-banner"
-            id="banner-image"
-            @change="handleBannerChange"
-          />
-          <div class="bg-mask banner-mask"></div>
-
-          <div class="person-img">
             <label
-              for="avatar-image"
-              class="avatar-icon avatar-change-photo"
+              class="banner-icon cancel-change"
+              v-if="isCancelBtnShown"
+              @click.prevent.stop="handleCancel"
             ></label>
+            <!-- preview banner -->
             <img
-              class="avatar-img rounded-circle position-absolute"
-              :src="currentUser.avatar | emptyImage"
-              alt="person-image"
+              v-if="tempUser.banner"
+              :src="tempUser.banner"
+              class="banner-img w-100 banner-preview"
             />
-            <!-- preview avatar -->
             <img
-              v-if="tempUser.avatar"
-              :src="tempUser.avatar"
-              class="avatar-img rounded-circle position-absolute avatar-preview"
-              width="200"
-              height="200"
+              v-if="!tempUser.banner"
+              class="banner-img w-100"
+              :src="currentUser.banner | emptyBanner"
+              alt="banner"
             />
+
             <input
+              name="banner"
               type="file"
               accept="image/jpeg,image/png,image/webp"
-              class="upload-avatar"
-              id="avatar-image"
-              @change="handleAvatarChange"
+              class="upload-banner"
+              id="banner-image"
+              @change="handleBannerChange"
             />
+            <div class="bg-mask banner-mask"></div>
 
-            <div class="avatar-mask"></div>
+            <div class="person-img">
+              <label
+                for="avatar-image"
+                class="avatar-icon avatar-change-photo"
+              ></label>
+              <img
+                class="avatar-img rounded-circle position-absolute"
+                :src="currentUser.avatar | emptyImage"
+                alt="person-image"
+              />
+              <!-- preview avatar -->
+              <img
+                v-if="tempUser.avatar"
+                :src="tempUser.avatar"
+                class="avatar-img rounded-circle position-absolute avatar-preview"
+                width="200"
+                height="200"
+              />
+              <input
+                name="avatar"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                class="upload-avatar"
+                id="avatar-image"
+                @change="handleAvatarChange"
+              />
+
+              <div class="avatar-mask"></div>
+            </div>
           </div>
-        </div>
-        <div class="modal-body">
-          <!-- 表格 -->
-          <form class="mx-auto w-100" action="">
+          <div class="modal-body">
             <div class="form-input d-flex flex-column">
               <label for="name" class="form-input-text">名稱</label>
               <input
@@ -96,9 +95,9 @@
                 @input="isNameInvalid = false"
                 required
               />
-              <span v-if="isNameInvalid" class="error-message mx-3"
-                >{{ nameErrorMessage }}</span
-              >
+              <span v-if="isNameInvalid" class="error-message mx-3">{{
+                nameErrorMessage
+              }}</span>
             </div>
             <div class="form-input form-introduction d-flex">
               <label for="introduction" class="form-input-text">自我介紹</label>
@@ -115,8 +114,8 @@
                 >自我介紹不可超過 160 字！</span
               >
             </div>
-          </form>
-        </div>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -134,6 +133,7 @@ export default {
   data() {
     return {
       tempUser: {
+        id: "",
         name: "",
         introduction: "",
         avatar: "",
@@ -143,10 +143,11 @@ export default {
       nameErrorMessage: "",
       isIntroTooLong: false,
       isProcessing: false,
-      isCancelBtnShown: false
+      isCancelBtnShown: false,
     };
   },
   created() {
+    this.tempUser.id = this.currentUser.id;
     this.tempUser.name = this.currentUser.name;
     this.tempUser.introduction = this.currentUser.introduction;
     this.tempUser.avatar = this.currentUser.avatar;
@@ -155,13 +156,13 @@ export default {
   props: {
     // 從 User.vue 傳來
     show: Boolean,
-  }, 
+  },
   computed: {
     // 從 Vuex 取得 currentUser 的資料
     ...mapState(["currentUser"]),
   },
   methods: {
-    async handleEditModalSubmit() {
+    async handleEditModalSubmit(event) {
       try {
         // 若名稱沒填，防止請求送出
         if (!this.tempUser.name) {
@@ -184,13 +185,11 @@ export default {
         }
         // 暫時關閉按鈕
         this.isProcessing = true;
-     
-        const response = await usersAPI.editSelfData(this.currentUser.id, {
-          name: this.tempUser.name,
-          introduction: this.tempUser.introduction,
-          avatar: this.tempUser.avatar,
-          banner: this.tempUser.banner,
-        });
+
+        const form = event.target;
+        const formData = new FormData(form);
+
+        const response = await usersAPI.editSelfData({ userId: this.tempUser.id, formData });
 
         if (response.data.status === "error") {
           throw new Error(response.data.message);
@@ -204,10 +203,9 @@ export default {
         // close the modal after submitted
         this.$emit("close");
         this.isProcessing = false;
-
       } catch (error) {
         this.isProcessing = false;
-        console.log(error.response.data.message);
+        console.error(error.response.data.message);
         switch (error.response.data.message) {
           case "permission denied":
             Toast.fire({
@@ -233,7 +231,7 @@ export default {
     handleAvatarChange(event) {
       const { files } = event.target;
       // 如果有上傳檔案，產生預覽圖
-      if(event.target.files.length !== 0){
+      if (files.length !== 0) {
         const imageURL = window.URL.createObjectURL(files[0]);
         this.tempUser.avatar = imageURL;
       }
@@ -241,11 +239,12 @@ export default {
     handleBannerChange(event) {
       const { files } = event.target;
       // 如果有上傳檔案，產生預覽圖
-      if(event.target.files.length !== 0){
+      if (files.length !== 0) {
         // 顯示取消按鈕
         this.isCancelBtnShown = true;
         const imageURL = window.URL.createObjectURL(files[0]);
         this.tempUser.banner = imageURL;
+        console.log(this.tempUser.banner);
       }
     },
     handleCancel() {

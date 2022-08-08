@@ -99,12 +99,15 @@ export default {
               icon: "error",
               title: "帳號不存在！",
             });
+            this.user.account = "";
+            this.user.password = "";
             break;
           case "Error: Account or Password error!":
             Toast.fire({
               icon: "error",
               title: "請確認您輸入的帳號、密碼是否正確",
             });
+            this.user.account = "";
             this.user.password = "";
             break;
         }

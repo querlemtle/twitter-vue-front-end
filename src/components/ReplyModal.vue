@@ -94,6 +94,9 @@ export default {
   props: {
     // 從 Home.vue 或 Tweet.vue 傳來
     show: Boolean,
+    userTweet : {
+      type: Object,
+    },
     // 來自 Tweet.vue or Home.vue
     initialSpecTweet: {
       type: Object,
@@ -222,7 +225,7 @@ export default {
 }
 
 /* cited tweet card */
-.modal-tweet {
+.card-tweet {
   display: flex;
   position: relative;
 }

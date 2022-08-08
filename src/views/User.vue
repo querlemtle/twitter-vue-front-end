@@ -6,9 +6,10 @@
       </div>
       <div class="col-7">
         <UserProfileCard 
-        @show-edit-modal="toggleEditModal(true)"/>
+        :user="user"
+        @show-edit-modal="toggleEditModal(true)" />
         <div>
-          <ul class="nav-tab d-flex">
+          <ul class="nav-tab d-flex w-100">
             <li v-for="tab in tabs" :key="tab.id" class="nav-item">
               <router-link :to="tab.path" class="nav-link">
                 {{ tab.title }}
@@ -16,10 +17,19 @@
             </li>
           </ul>
         </div>
-        <router-view :current-user="currentUser"> </router-view>
+
+        <!-- todo: 這邊使用 router-link 畫面會 error -->
+        <!-- <router-link
+          v-for="tweet in tweets"
+          :key="tweet.id"
+          :initial-tweets="tweets"
+        ></router-link>
+       -->
+
+        <router-view />
       </div>
       <div class="col">
-        <PopularUsers />
+        <PopularUsers @change-count="handleChangeCount"/>
       </div>
     </div>
     <UserEditModal :show="showEditModal" @close="toggleEditModal(false)" />
@@ -34,40 +44,8 @@ import SideBar from "../components/Sidebar";
 import UserProfileCard from "./../components/UserProfileCard";
 import PopularUsers from "../components/PopularUsers";
 import UserEditModal from "../components/UserEditModal";
-
-const dummyData = {
-  dummyUser: {
-    id: 6,
-    account: "user5",
-    name: "user5",
-    avatar: "https://i.imgur.com/mUMGidO.jpeg",
-    introduction: null,
-    banner: "https://i.imgur.com/zFLriLp.jpeg",
-    role: "user",
-    createdAt: "2022-07-31T11:44:03.000Z",
-    updatedAt: "2022-07-31T11:57:31.000Z",
-    tweetCounts: 10,
-    replyCounts: 40,
-    likeCounts: 0,
-    followerCounts: 0,
-    followingCounts: 0,
-    currentUser: {
-      id: 6,
-      account: "user5",
-      name: "user5",
-      email: "user5@example.com",
-      password: "$2a$10$XJnSp12vCKq1sJI5kf0Z7.66l35Dkke//bzkUC3kX3amI/pwrSntm",
-      avatar: "https://i.imgur.com/mUMGidO.jpeg",
-      introduction: null,
-      banner: "https://i.imgur.com/zFLriLp.jpeg",
-      role: "user",
-      createdAt: "2022-07-31T11:44:03.000Z",
-      updatedAt: "2022-07-31T11:57:31.000Z",
-      Followers: [],
-      Followings: [],
-    },
-  },
-};
+import userAPI from "./../apis/user";
+import { Toast } from "../utils/helpers";
 
 export default {
   name: "User",
@@ -75,11 +53,18 @@ export default {
     SideBar,
     UserProfileCard,
     PopularUsers,
-    UserEditModal
+    UserEditModal,
   },
   created() {
-    const { userId } = this.$route.params;
-    this.fetchUser(userId);
+    // 取得動態路由位置
+    const { id: userId } = this.$route.params;
+    this.fetchUserProfile(userId);
+  },
+  // 追蹤路由變化
+  beforeRouteUpdate(to, from, next) {
+    const { id } = to.params;
+    this.fetchUserProfile(id);
+    next();
   },
   data() {
     return {
@@ -89,7 +74,7 @@ export default {
           path: "tweets",
         },
         {
-          title: "推文與回覆",
+          title: "回覆",
           path: "replies",
         },
         {
@@ -98,16 +83,65 @@ export default {
         },
       ],
       currentUser: {},
+      tweets: [],
       showEditModal: false,
+
+      user: {
+        id: -1,
+        account: "",
+        name: "",
+        email: "",
+        introduction: "",
+        avatar: "",
+        banner: "",
+        tweetCounts: 0,
+        followingCounts: 0,
+        followerCounts: 0,
+        likeCount: 0,
+        isFollowed: false,
+      },
     };
   },
   methods: {
-    fetchUser() {
-      this.currentUser = dummyData.dummyUser.currentUser;
-    },
     toggleEditModal(bool) {
       this.showEditModal = bool;
     },
+    
+    handleChangeCount(value) {
+      
+      if (value === false) {
+        this.user.followingCounts = this.user.followingCounts + 1
+      }
+      if (value === true) {
+        this.user.followingCounts = this.user.followingCounts - 1
+      }
+    },
+  
+    async fetchUserProfile(userId) {
+      try {
+        const response = await userAPI.getUser({ userId });
+
+        if (response.status !== 200) {
+          throw new Error(response.message);
+        }
+
+        this.user = response.data;
+
+        console.log("UserProfile response.data", response.data);
+
+        this.user = {
+          ...this.user,
+          introduction: this.user.introduction ? this.user.introduction : "",
+        };
+        this.isLoading = false;
+      } catch (error) {
+        this.isLoading = false;
+        Toast.fire({
+          icon: "error",
+          title: "無法取得使用者資料，請稍後再試",
+        });
+      }
+    }
   },
 };
 </script>
@@ -120,8 +154,7 @@ export default {
   flex-wrap: nowrap;
 }
 .nav-link.active {
-  width: 80px;
-  box-shadow: 0px 2px ;
+  box-shadow: 0px 2px;
   justify-content: center;
   padding: 10px 15px;
   /* todo: 線刪不掉 and 圓弧效果radius:100px  */

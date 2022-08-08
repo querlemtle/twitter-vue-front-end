@@ -19,6 +19,7 @@
           class="btn-border btn-50 btn-clip user-follow-btn"
           v-if="user.id !== currentUser.id"
           :active="user.isFollowed"
+          @click="changeFollowingCount(user.isFollowed)"
           @click.prevent.stop="toggleFollowUser(user.isFollowed, user.id)"
         >
           {{ user.isFollowed ? "正在跟隨" : "跟隨" }}
@@ -44,6 +45,10 @@ export default {
     };
   },
   methods: {
+    changeFollowingCount(toggleIsFollowed) {
+      console.log("step 1. changeFollowingCount is click")
+      this.$emit('change-count',toggleIsFollowed)
+    },
     async fetchTopUsers() {
       try {
         const { data } = await followsAPI.getTopUsers();
@@ -66,6 +71,9 @@ export default {
               title: "成功取消跟隨",
             });
 
+          // stop
+          // //  向 User 傳遞值有變動
+          // this.$emit('after-click-followBtn', "unFollow") 
           } else if (response.data.status === "error") {
             throw new Error(response.data.message);
           }
@@ -83,6 +91,9 @@ export default {
             throw new Error(response.data.message);
           }
         }
+        // stop
+        // //  向 User 傳遞值有變動
+        //   this.$emit('after-click-followBtn', "addFollow") 
         
         // 修改該 user.isFollowed
         const targetIndex = this.popularUsers.findIndex(user => user.id === userId);

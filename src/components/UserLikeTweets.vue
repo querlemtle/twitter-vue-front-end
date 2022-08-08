@@ -1,17 +1,31 @@
 <template>
   <div class="card-container">
+    <Spinner v-if="isLoading" />
     <div
       v-for="tweet in userLikeTweets"
       :key="tweet.id"
       class="user-like-tweets"
     >
-      <div class="user-image-sm"></div>
+    <!-- 有圖片時 -->
+     <router-link
+        v-if="tweet.Tweet.User.avatar"
+        :to="{ name: 'user', params: { id: tweet.Tweet.User.id } }"
+      >
+        <img :src="tweet.Tweet.User.avatar" class="user-avatar" alt="" />
+      </router-link>
+      <!-- 沒有圖片時 -->
+      <router-link
+        v-else
+        :to="{ name: 'user', params: { id: tweet.Tweet.User.id } }"
+      >
+        <div class="user-image-sm"></div>
+      </router-link>
       <div class="card-info">
         <div class="card-header">
           <div class="user-naming">
-            <p class="user-name">XXX</p>
+            <p class="user-name">{{tweet.Tweet.User.name}}</p>
             <p class="user-handle">
-              @applepen<span>・</span>
+              @{{tweet.Tweet.User.account}}<span>・</span>
               <span class="time-stamp">{{ tweet.createdAt | fromNow }}</span>
             </p>
           </div>
@@ -28,6 +42,32 @@
               tweet.Tweet.replyCounts
             }}</span>
           </div>
+          <!-- From UserTweets -->
+          <!-- <div class="icon-section">
+             <div class="footer-icon like-icon">
+              <div 
+              v-if="!tweet.isLiked"
+              @click.stop.prevent="deleteLike(tweet.id)"
+              class="section-like d-flex">
+                <img
+                class="counter like-icon"
+                src="../assets/pictures/like.png"
+                alt=""
+              />{{ tweet.likeCounts }}
+              </div>
+              <div 
+              v-if="tweet.isLiked"
+              @click.stop.prevent="addLike(tweet.id)"
+              class="section-like d-flex">
+                <img
+                class="counter like-icon-add"
+                src="../assets/pictures/like-icon.svg"
+                alt=""
+              />{{ tweet.likeCounts }}
+              </div>
+            </div>
+          </div> -->
+          <!-- Here -->
           <div class="icon-section">
             <div
               v-if="!tweet.isLike"
@@ -48,76 +88,48 @@
 </template>
 
 <script>
+import Spinner from "./../components/Spinner.vue";
 import { fromNowFilter } from "./../utils/mixins";
+import userAPI from "./../apis/user";
+import { Toast } from "../utils/helpers";
+// 載入 Vuex
+import { mapState } from "vuex";
 
-const dummyData = {
-  dummyLikeTweets: [
-    {
-      id: 25,
-      UserId: 5,
-      TweetId: 79,
-      createdAt: "2022-08-02T02:49:05.000Z",
-      updatedAt: "2022-08-02T02:49:05.000Z",
-      Tweet: {
-        id: 79,
-        userId: 9,
-        description:
-          "Provident est repudiandae ratione ut. Occaecati est voluptas ducimus non. Quis animi dolores aut dolorem consequatur. Qui officiis cumque ut",
-        createdAt: "2022-08-02T02:49:05.000Z",
-        updatedAt: "2022-08-02T02:49:05.000Z",
-        UserId: 9,
-        replyUserAccount: "user8",
-        replyCounts: 6,
-        likeCounts: 1,
-      },
-    },
-    {
-      id: 26,
-      UserId: 5,
-      TweetId: 63,
-      createdAt: "2022-08-02T02:49:05.000Z",
-      updatedAt: "2022-08-02T02:49:05.000Z",
-      Tweet: {
-        id: 63,
-        userId: 8,
-        description:
-          "Explicabo in aut. Maxime dolorum eum. Tempora explicabo tempore quod perspiciatis. Culpa enim et non illum rem consequatur ut accusamus sunt",
-        createdAt: "2022-08-02T02:49:05.000Z",
-        updatedAt: "2022-08-02T02:49:05.000Z",
-        UserId: 8,
-        replyUserAccount: "user7",
-        replyCounts: 6,
-        likeCounts: 1,
-      },
-    },
-  ],
-};
 export default {
   name: "UserLikeTweets",
   mixins: [fromNowFilter],
 
-  //   // 取得的資料和預想的不一樣
-  // props: {
-  //   currentUser: {
-  //     type: Object,
-  //     required: true,
-  //   },
-  // },
   data() {
     return {
       userLikeTweets: [],
+      // check
+      isLoading: false,
     };
+  },
+  components: {
+    Spinner,
+  },
+  computed: {
+    ...mapState(["currentUser"]),
   },
   created() {
     // 取得動態路由位置
-    const { id: tweetId } = this.$route.params;
-    this.fetchLikeTweets(tweetId);
-
-    this.currentUser = dummyData.dummyLikeTweets;
+    const { id: userId } = this.$route.params;
+    this.fetchLikeTweets(userId);
   },
   methods: {
-    fetchLikeTweets() {
-      this.userLikeTweets = dummyData.dummyLikeTweets;
+    async fetchLikeTweets(userId) {
+      try {
+        const { data } = await userAPI.getUserLikeTweets({ userId });
+        console.log("likeTweets", data);
+
+        this.userLikeTweets = data;
+      } catch (error) {
+        Toast.fire({
+          icon: "error",
+          title: "無法取得 likeTweets",
+        });
+      }
     },
     // todo: API
     // addLike(id) {
@@ -125,12 +137,22 @@ export default {
     // }
     // deleteLike(id) {
 
-    // }  
+    // }
   },
 };
 </script>
 
 <style scoped>
+/* 有圖片時 */
+.user-avatar {
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  margin-right: 0.5rem;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+/* 沒有圖片時 */
 .user-image-sm {
   padding: 1rem;
   margin-right: 0.5rem;
@@ -147,6 +169,6 @@ export default {
   background-image: url("./../assets/pictures/like.png");
 }
 .like-icon-add {
-  background-image: url("./../assets/pictures/icon_like.png");
+  background-image: url("./../assets/pictures/icon-like.png");
 }
 </style>

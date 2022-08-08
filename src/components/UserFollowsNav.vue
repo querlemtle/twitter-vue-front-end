@@ -2,13 +2,32 @@
   <!-- Followers / Following tabs -->
     <ul class="tab">
       <li class="tab-item">
-        <router-link class="tab-link" aria-current="page" :to="{ name: 'user-followers' }">追隨者</router-link>
+        <router-link class="tab-link" aria-current="page" :to="{ name: 'user-followers', params: { id: user } }">追隨者</router-link>
       </li>
       <li class="tab-item">
-        <router-link class="tab-link" aria-current="page" :to="{ name: 'user-followerings' }">正在追隨</router-link>
+        <router-link class="tab-link" aria-current="page" :to="{ name: 'user-followings', params: { id: user } }">正在追隨</router-link>
       </li>
     </ul>
 </template>
+
+<script>
+
+export default {
+  name: "UserFollowsNav",
+  data () {
+    return {
+
+    };
+  },
+  props: {
+    user: {
+      type: String,
+      required: true,
+    },
+  },
+}
+
+</script>
 
 <style scoped>
 /* Followers / Following tabs */
